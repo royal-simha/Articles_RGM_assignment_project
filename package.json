@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "Production-Style Full-Stack Blog Management System",
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
     "server": "npm --prefix server run dev",
     "client": "npm --prefix client run dev",
