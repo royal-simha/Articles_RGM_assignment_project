@@ -1,0 +1,14 @@
+{
+  "name": "blog-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-Style Full-Stack Blog Management System",
+  "scripts": {
+    "server": "npm --prefix server run dev",
+    "client": "npm --prefix client run dev",
+    "build:client": "npm --prefix client run build",
+    "test": "npm --prefix server test",
+    "db:setup": "npm --prefix server run db:setup",
+    "db:seed": "npm --prefix server run prisma:seed"
+  }
+}
