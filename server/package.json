@@ -6,14 +6,15 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
+    "dev": "node scripts/setup-db.js && nodemon src/server.js",
     "build": "node scripts/setup-db.js",
+    "postinstall": "node scripts/setup-db.js",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:seed": "node prisma/seed.js",
     "db:setup": "prisma generate && prisma db push && node prisma/seed.js",
     "db:setup:pg": "npx prisma db push --schema=prisma/schema.postgresql.prisma --accept-data-loss && npx prisma generate --schema=prisma/schema.postgresql.prisma && node prisma/seed.js",
-    "test": "vitest run"
+    "test": "node scripts/setup-db.js && vitest run"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

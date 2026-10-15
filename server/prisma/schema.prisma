@@ -1,8 +1,9 @@
-// Prisma schema for Blog Management System (Local & Testing: SQLite)
-// See schema.postgresql.prisma for production PostgreSQL deployment.
+// Production PostgreSQL Prisma Schema
+// Use this schema when connecting to a PostgreSQL instance (e.g. Supabase, Neon, Render, or local PostgreSQL).
+// To use: copy this file over schema.prisma, or run: npx prisma db push --schema=prisma/schema.postgresql.prisma
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -10,17 +11,34 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum Role {
+  reader
+  creator
+  admin
+}
+
+enum PostStatus {
+  draft
+  published
+}
+
+enum CommentStatus {
+  pending
+  approved
+  rejected
+}
+
 model User {
-  id           String    @id @default(uuid())
-  name         String
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  role         String    @default("reader") // "reader" | "creator" | "admin"
+  id           String    @id @default(uuid()) @db.Uuid
+  name         String    @db.VarChar(100)
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.Text
+  role         Role      @default(reader)
   isActive     Boolean   @default(true) @map("is_active")
-  avatarUrl    String?   @map("avatar_url")
-  bio          String?
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  avatarUrl    String?   @map("avatar_url") @db.Text
+  bio          String?   @db.Text
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
   posts        Post[]
   comments     Comment[]
@@ -29,11 +47,11 @@ model User {
 }
 
 model Category {
-  id          String   @id @default(uuid())
-  name        String
-  slug        String   @unique
-  description String?
-  createdAt   DateTime @default(now()) @map("created_at")
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @db.VarChar(100)
+  slug        String   @unique @db.VarChar(120)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
   posts       Post[]
 
@@ -41,10 +59,10 @@ model Category {
 }
 
 model Tag {
-  id        String    @id @default(uuid())
-  name      String
-  slug      String    @unique
-  createdAt DateTime  @default(now()) @map("created_at")
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @db.VarChar(50)
+  slug      String    @unique @db.VarChar(60)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
 
   postTags  PostTag[]
 
@@ -52,21 +70,21 @@ model Tag {
 }
 
 model Post {
-  id            String    @id @default(uuid())
-  authorId      String    @map("author_id")
-  categoryId    String?   @map("category_id")
-  title         String
-  slug          String    @unique
-  summary       String?
-  content       String
-  coverImageUrl String?   @map("cover_image_url")
-  status        String    @default("draft") // "draft" | "published"
-  publishedAt   DateTime? @map("published_at")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  id            String     @id @default(uuid()) @db.Uuid
+  authorId      String     @map("author_id") @db.Uuid
+  categoryId    String?    @map("category_id") @db.Uuid
+  title         String     @db.VarChar(200)
+  slug          String     @unique @db.VarChar(220)
+  summary       String?    @db.VarChar(500)
+  content       String     @db.Text
+  coverImageUrl String?    @map("cover_image_url") @db.Text
+  status        PostStatus @default(draft)
+  publishedAt   DateTime?  @map("published_at") @db.Timestamptz()
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime   @updatedAt @map("updated_at") @db.Timestamptz()
 
-  author        User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  category      Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  author        User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category      Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   comments      Comment[]
   postTags      PostTag[]
 
@@ -78,8 +96,8 @@ model Post {
 }
 
 model PostTag {
-  postId String @map("post_id")
-  tagId  String @map("tag_id")
+  postId String @map("post_id") @db.Uuid
+  tagId  String @map("tag_id") @db.Uuid
 
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
@@ -89,16 +107,16 @@ model PostTag {
 }
 
 model Comment {
-  id        String   @id @default(uuid())
-  postId    String   @map("post_id")
-  authorId  String   @map("author_id")
-  content   String
-  status    String   @default("approved") // "pending" | "approved" | "rejected"
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id        String        @id @default(uuid()) @db.Uuid
+  postId    String        @map("post_id") @db.Uuid
+  authorId  String        @map("author_id") @db.Uuid
+  content   String        @db.Text
+  status    CommentStatus @default(approved)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz()
 
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([postId])
   @@index([authorId])
