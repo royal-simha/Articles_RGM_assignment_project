@@ -1,6 +1,24 @@
-// API Client with automatic JWT attachment and standardized error handling
+// Determine API Base URL:
+// 1. If VITE_API_URL is provided in environment variables, normalize and use it
+// 2. In production (e.g. deployed on Vercel), fallback to the deployed Render backend
+// 3. In local development, default to '/api/v1' to leverage Vite dev proxy
+const resolveApiBase = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim()) {
+    const trimmed = envUrl.trim().replace(/\/+$/, '');
+    return trimmed.endsWith('/api/v1') ? trimmed : `${trimmed}/api/v1`;
+  }
 
-const API_BASE = '/api/v1';
+  // Deployed production fallback to Render backend
+  if (import.meta.env.PROD) {
+    return 'https://articles-rgm-assignment-project.onrender.com/api/v1';
+  }
+
+  // Local development fallback (Vite proxy: /api -> http://localhost:5000)
+  return '/api/v1';
+};
+
+const API_BASE = resolveApiBase();
 
 class ApiClient {
   static getToken() {
