@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node scripts/setup-db.js && nodemon src/server.js",
+    "server": "npm run dev",
     "build": "node scripts/setup-db.js",
     "postinstall": "node scripts/setup-db.js",
     "prisma:generate": "prisma generate",
