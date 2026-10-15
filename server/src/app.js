@@ -49,6 +49,22 @@ if (ENV.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
+// Root informational endpoint
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Blog Management System API is running',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/v1/health',
+      posts: '/api/v1/posts',
+      categories: '/api/v1/categories',
+      tags: '/api/v1/tags',
+      auth: '/api/v1/auth',
+    },
+  });
+});
+
 // API Routes
 app.use('/api/v1', apiRouter);
 
